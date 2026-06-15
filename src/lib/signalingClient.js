@@ -1,5 +1,7 @@
+import { generateId } from "./uuid.js";
+
 export function createPeerId() {
-  return crypto.randomUUID();
+  return generateId();
 }
 
 export function createRoomId() {

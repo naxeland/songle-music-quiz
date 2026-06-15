@@ -1,3 +1,5 @@
+import { generateId } from "./uuid.js";
+
 const SONG_POINTS = 1000;
 const ARTIST_POINTS = 750;
 const MIN_POINTS = 100;
@@ -6,7 +8,7 @@ const WRONG_GUESS_POINTS = 50;
 
 export function createSession({ playlistId, catalog, hostName }) {
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     playlistId,
     catalogSnapshotId: catalog.snapshotId,
     hostName,
@@ -21,7 +23,7 @@ export function createSession({ playlistId, catalog, hostName }) {
 
 export function createPlayer({ id, name, isHost = false }) {
   return {
-    id: id || crypto.randomUUID(),
+    id: id || generateId(),
     name: name || "Player",
     isHost,
     connected: true,
@@ -33,7 +35,7 @@ export function createPlayer({ id, name, isHost = false }) {
 
 export function createRound({ roundNumber, trackId, trackUri, startsAtEpoch }) {
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     roundNumber,
     trackId,
     trackUri,
@@ -82,7 +84,7 @@ export function addActivity(session, text) {
     activity: [
       ...(session.activity || []),
       {
-        id: crypto.randomUUID(),
+        id: generateId(),
         text,
         createdAt: Date.now(),
       },
@@ -142,7 +144,7 @@ export function applyWrongGuess(session, { playerId, field, guessText }) {
 
   const player = session.players.find((currentPlayer) => currentPlayer.id === playerId);
   const wrongGuess = {
-    id: crypto.randomUUID(),
+    id: generateId(),
     playerId,
     playerName: player?.name || "Player",
     field,

@@ -53,6 +53,7 @@ import {
   upsertPlayer,
 } from "@/lib/sessionProtocol";
 import { createPeerId, createRoomId, createSignalingClient } from "@/lib/signalingClient";
+import { generateId } from "@/lib/uuid";
 import { createWebRtcRoom } from "@/lib/webrtcRoom";
 import {
   chooseNewestSnapshot,
@@ -150,7 +151,7 @@ function playCountdownTick(value) {
 
 function createVote({ type, requestedBy, requestedByName, targetPlayerId, targetPlayerName, playlist }) {
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     type,
     requestedBy,
     requestedByName,
@@ -722,7 +723,7 @@ export default function QuizRoom({ mode = "spotify", initialName, initialRoomId 
 
   const pushUiEvent = (text) => {
     if (!text) return;
-    const id = crypto.randomUUID();
+    const id = generateId();
     setUiEvents((events) => [...events, { id, text }].slice(-3));
     setTimeout(() => {
       setUiEvents((events) => events.filter((event) => event.id !== id));
@@ -780,9 +781,7 @@ export default function QuizRoom({ mode = "spotify", initialName, initialRoomId 
     const audio = new Audio("/dj-stop.mp3");
     audio.volume = 0.75;
     const requestId =
-      typeof crypto !== "undefined" && crypto.randomUUID
-        ? crypto.randomUUID()
-        : `${Date.now()}-${Math.random()}`;
+      generateId();
     let hasRequestedFade = false;
     const requestSyncedFade = (durationMs = ROUND_COMPLETE_AUDIO_FALLBACK_MS) => {
       if (hasRequestedFade) return;
@@ -1200,11 +1199,22 @@ export default function QuizRoom({ mode = "spotify", initialName, initialRoomId 
     if (!inviteLink) return;
 
     try {
-      await navigator.clipboard.writeText(inviteLink);
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(inviteLink);
+      } else {
+        const el = document.createElement("textarea");
+        el.value = inviteLink;
+        el.style.position = "fixed";
+        el.style.opacity = "0";
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand("copy");
+        document.body.removeChild(el);
+      }
       setHasCopiedInvite(true);
       setTimeout(() => setHasCopiedInvite(false), 1500);
     } catch {
-      setStatus("Could not copy invite link.");
+      setStatus(`Invite link: ${inviteLink}`);
     }
   };
 
@@ -1849,7 +1859,7 @@ export default function QuizRoom({ mode = "spotify", initialName, initialRoomId 
       id:
         requestId ||
         (typeof crypto !== "undefined" && crypto.randomUUID
-          ? crypto.randomUUID()
+          ? generateId()
           : `${Date.now()}-${Math.random()}`),
       fadeMs,
     });
